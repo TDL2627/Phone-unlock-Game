@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Unlock the Phone</title>
+<style>
+:root{--g:#22c55e;--y:#eab308;--d:#3a4150;--t:#eef2ff;--m:#8b93a7;--ac:#6d83ff}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{display:grid;place-items:center;overflow:hidden;color:var(--t);user-select:none;-webkit-user-select:none;touch-action:manipulation;
+font-family:"SF Pro Display","Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+background:radial-gradient(ellipse at 15% 0,#1d2d5c 0,transparent 55%),radial-gradient(ellipse at 95% 100%,#3b1b55 0,transparent 50%),#060911}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.phone{position:relative;width:min(400px,100vw);height:min(850px,100dvh);display:flex;flex-direction:column;overflow:hidden;
+padding:46px 0 max(14px,env(safe-area-inset-bottom));border-radius:46px;border:2px solid #2b3556;
+background:linear-gradient(165deg,#151c33 0,#0b0f1c 60%,#0d0a1a 100%);
+box-shadow:0 0 0 7px #05070d,0 0 0 8px #232c48,0 30px 80px rgba(0,0,0,.7),0 0 70px rgba(80,110,255,.18)}
+.phone::before{content:"";position:absolute;top:11px;left:50%;width:92px;height:24px;margin-left:-46px;border-radius:14px;background:#02030a;z-index:2}
+.phone.glow{animation:glow 1.2s ease}
+@media(max-width:500px){.phone{border-radius:0;border:0;box-shadow:none;height:100dvh;padding-top:max(14px,env(safe-area-inset-top))}.phone::before{display:none}}
+header{text-align:center;padding:0 16px}
+#lock{width:26px;height:26px;color:#c7d0ee;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:color .3s}
+#lock circle{fill:currentColor;stroke:none}
+#lock rect{fill:rgba(255,255,255,.08)}
+#lock.open{color:var(--g);animation:pop .6s cubic-bezier(.3,1.6,.5,1)}
+#clk{font-size:clamp(34px,6.4vh,52px);font-weight:200;letter-spacing:.02em;line-height:1.05}
+#dt{font-size:13px;color:var(--m);margin-top:2px}
+h1{font-size:12px;letter-spacing:.34em;font-weight:700;margin-top:6px;background:linear-gradient(90deg,#8fa2ff,#c28bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(max-height:720px){#dt{display:none}#lock{width:20px;height:20px}}
+.meta{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px}
+#att{font-size:13px;font-weight:600;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
+#att span{color:var(--m);font-weight:500}
+.ib{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-size:16px;font-weight:700;margin-left:8px;transition:background .2s}
+.ib:active{background:rgba(255,255,255,.18)}
+.bw{position:relative;flex:1;min-height:0;display:flex;padding:0 14px}
+#board{flex:1;display:grid;grid-template-rows:repeat(10,minmax(0,1fr));gap:4px}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:3px;width:min(100%,310px);justify-self:center;border-radius:14px;border:1.5px solid transparent;transition:background .25s,border-color .25s,box-shadow .25s}
+.row.act{background:rgba(109,131,255,.08);border-color:rgba(130,150,255,.55);box-shadow:0 0 18px rgba(100,125,255,.28)}
+.row.shake{animation:shake .4s}
+.t{display:grid;place-items:center;border-radius:9px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-weight:700;font-size:clamp(15px,2.9vh,25px);font-variant-numeric:tabular-nums}
+.t.f{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
+.t.pop{animation:pop .15s ease-out}
+.t.flip{animation:flip .5s ease}
+.t.c{background:var(--g);border-color:var(--g);color:#04210f;box-shadow:0 0 12px rgba(34,197,94,.4)}
+.t.p{background:var(--y);border-color:var(--y);color:#241b00;box-shadow:0 0 12px rgba(234,179,8,.35)}
+.t.a{background:var(--d);border-color:var(--d);color:#aab2c5}
+#toast{position:absolute;left:50%;top:-2px;transform:translate(-50%,-6px);padding:7px 14px;border-radius:99px;font-size:13px;font-weight:600;background:rgba(20,26,48,.95);border:1px solid rgba(255,120,120,.5);color:#ffb4b4;opacity:0;pointer-events:none;transition:.25s;z-index:5;white-space:nowrap}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 18px 0;transition:opacity .3s}
+.off #pad{opacity:.45;pointer-events:none}
+.k{height:clamp(40px,6.2vh,54px);border-radius:15px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:21px;font-weight:600;transition:transform .08s,background .25s,border-color .25s}
+.k:active{transform:scale(.92)}
+.k.e{background:linear-gradient(135deg,#3f7bff,#7a5cff);border-color:transparent;font-size:13px;font-weight:700;letter-spacing:.1em}
+.k.x{font-size:19px}
+.k.c{background:var(--g);border-color:var(--g);color:#04210f}
+.k.p{background:var(--y);border-color:var(--y);color:#241b00}
+.k.a{background:var(--d);border-color:var(--d);color:#7f889c}
+#ov{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#ov.on{display:flex}
+.card{width:100%;max-height:100%;overflow:auto;padding:22px 20px;border-radius:26px;text-align:center;background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.18);box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2);animation:rise .4s cubic-bezier(.2,1.3,.4,1)}
+.card h2{font-size:22px;letter-spacing:.04em;margin-bottom:10px}
+.card h2.w{color:var(--g);text-shadow:0 0 22px rgba(34,197,94,.6)}
+.card h2.l{color:#ff7a7a;text-shadow:0 0 22px rgba(255,90,90,.45)}
+.card p{color:#c9d0e6;font-size:15px;line-height:1.45;margin-bottom:14px}
+.card ol{text-align:left;padding-left:22px;font-size:13.5px;line-height:1.45;color:#d4daee;margin-bottom:12px}
+.card li{margin-bottom:5px}
+.card .note{font-size:12px;color:var(--m);margin:4px 0 14px}
+.chip{display:inline-block;padding:0 7px;border-radius:6px;font-weight:700;font-size:12px}
+.chip.g{background:var(--g);color:#04210f}.chip.y{background:var(--y);color:#241b00}.chip.d{background:var(--d);color:#cfd5e4}
+.big{width:100%;padding:15px;border-radius:16px;font-size:17px;font-weight:700;letter-spacing:.04em;background:linear-gradient(135deg,#3f7bff,#8a5cff);box-shadow:0 8px 28px rgba(90,100,255,.45);animation:pulse 2.2s infinite}
+.big:active{transform:scale(.97)}
+.pin{display:flex;justify-content:center;gap:7px;margin:4px 0 14px}
+.pin .t{width:44px;height:52px;font-size:24px}
+#fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+#fx i{position:absolute;top:-16px;width:8px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes pop{50%{transform:scale(1.14)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.94)}}
+@keyframes pulse{50%{box-shadow:0 8px 40px rgba(110,110,255,.8)}}
+@keyframes glow{40%{box-shadow:0 0 0 7px #05070d,0 0 0 8px #22c55e,0 0 120px rgba(34,197,94,.55)}}
+@keyframes fall{to{transform:translate(var(--dx),920px) rotate(var(--r))}}
+@media(prefers-reduced-motion:reduce){*,*::before{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main class="phone off" id="phone">
+  <header>
+    <svg id="lock" viewBox="0 0 24 24" aria-label="Phone locked" role="img"><path id="sh" d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11"/><rect x="4.5" y="11" width="15" height="10" rx="2.8"/><circle cx="12" cy="16" r="1.3"/></svg>
+    <div id="clk">00:00</div><div id="dt"></div>
+    <h1>UNLOCK THE PHONE</h1>
+  </header>
+  <div class="meta">
+    <div id="att">Attempt 1 of 10 <span>· 10 left</span></div>
+    <div><button class="ib" id="snd" aria-label="Toggle sound">🔊</button><button class="ib" id="rl" aria-label="Show rules">?</button></div>
+  </div>
+  <div class="bw"><div id="toast" role="status"></div><div id="board"></div></div>
+  <div id="pad"></div>
+  <div id="ov"></div>
+  <div id="fx"></div>
+</main>
+<script>
+(()=>{
+"use strict";
+const $=s=>document.querySelector(s),MAX=10,LEN=4;
+const board=$("#board"),pad=$("#pad"),ov=$("#ov"),fx=$("#fx"),ph=$("#phone"),lock=$("#lock"),toast=$("#toast");
+let secret=[],row=0,cur=[],over=true,busy=false,started=false,sound=true,keys={},ac,outcome=null,tt;
+const RANK={a:1,p:2,c:3};
+
+/* ---------- build UI ---------- */
+for(let r=0;r<MAX;r++){const d=document.createElement("div");d.className="row";d.innerHTML='<div class="t"></div>'.repeat(LEN);board.appendChild(d)}
+const rows=[...board.children];
+"123456789".split("").forEach(n=>pad.insertAdjacentHTML("beforeend",`<button class="k" data-k="${n}">${n}</button>`));
+pad.insertAdjacentHTML("beforeend",'<button class="k x" data-k="d" aria-label="Delete">⌫</button><button class="k" data-k="0">0</button><button class="k e" data-k="e" aria-label="Enter">ENTER</button>');
+const keyEls={};pad.querySelectorAll(".k").forEach(k=>keyEls[k.dataset.k]=k);
+
+/* ---------- helpers ---------- */
+function tone(f,d=.08,type="sine",v=.07,at=0){
+  if(!sound)return;
+  try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();
+    const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+at;
+    o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(e){}
+}
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove("on"),1700)}
+function tick(){const d=new Date();$("#clk").textContent=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",hour12:false});$("#dt").textContent=d.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}
+tick();setInterval(tick,5000);
+
+/* ---------- scoring: two-pass duplicate-safe ---------- */
+function score(g,s){
+  const res=Array(LEN).fill("a"),left={};
+  for(let i=0;i<LEN;i++){if(g[i]===s[i])res[i]="c";else left[s[i]]=(left[s[i]]||0)+1}
+  for(let i=0;i<LEN;i++){if(res[i]!=="c"&&left[g[i]]>0){res[i]="p";left[g[i]]--}}
+  return res;
+}
+
+/* ---------- rendering ---------- */
+function meta(){
+  const used=Math.min(row+1,MAX),left=MAX-row;
+  $("#att").innerHTML=over&&outcome==="win"?`Solved in ${row+1} <span>of 10</span>`:`Attempt ${used} of 10 <span>· ${Math.max(left,0)} left</span>`;
+}
+function draw(popIdx){
+  rows.forEach((r,i)=>r.classList.toggle("act",i===row&&!over));
+  if(row>=MAX)return;
+  [...rows[row].children].forEach((t,i)=>{
+    t.textContent=cur[i]??"";t.classList.toggle("f",cur[i]!==undefined);
+    if(i===popIdx){t.classList.remove("pop");void t.offsetWidth;t.classList.add("pop")}
+  });
+}
+function paintKey(d,s){
+  if((RANK[s]||0)>(RANK[keys[d]]||0)){keys[d]=s;keyEls[d].classList.remove("a","p","c");keyEls[d].classList.add(s)}
+}
+
+/* ---------- input ---------- */
+const live=()=>started&&!over&&!busy&&!ov.classList.contains("on");
+function press(d){
+  if(!live()||cur.length>=LEN)return;
+  if(cur.includes(d)){say("No repeated digits — choose another number");tone(150,.12,"sawtooth",.04);buzz([20,30,20]);return}
+  cur.push(d);draw(cur.length-1);tone(520+cur.length*40,.05,"triangle");buzz(5)
+}
+function del(){if(!live()||!cur.length)return;cur.pop();draw();tone(300,.05,"triangle")}
+function submit(){
+  if(!live())return;
+  if(cur.length<LEN){
+    const r=rows[row];r.classList.remove("shake");void r.offsetWidth;r.classList.add("shake");
+    say(`Enter all ${LEN} digits (${cur.length}/${LEN})`);tone(150,.18,"sawtooth",.05);buzz([30,40,30]);return;
+  }
+  busy=true;buzz(20);
+  const r=row,g=cur.slice(),res=score(g,secret),tiles=[...rows[r].children];
+  tiles.forEach((t,i)=>setTimeout(()=>{
+    t.classList.add("flip");tone(380+i*70,.07,"sine",.05);
+    setTimeout(()=>t.classList.add(res[i]),230);
+  },i*260));
+  setTimeout(()=>{
+    g.forEach((d,i)=>paintKey(d,res[i]));
+    if(res.every(x=>x==="c"))return win(r);
+    if(r===MAX-1){row=MAX;return lose()}
+    row++;cur=[];busy=false;draw();meta();
+  },(LEN-1)*260+560);
+}
+pad.addEventListener("mousedown",e=>e.preventDefault());
+pad.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.k;k==="d"?del():k==="e"?submit():press(k)});
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==="Escape"&&started&&!over&&ov.classList.contains("on")){hide();return}
+  if(ov.classList.contains("on"))return;
+  if(/^[0-9]$/.test(e.key)){e.preventDefault();press(e.key)}
+  else if(e.key==="Backspace"){e.preventDefault();del()}
+  else if(e.key==="Enter"){e.preventDefault();submit()}
+});
+
+/* ---------- overlays ---------- */
+function show(h){ov.innerHTML='<div class="card">'+h+"</div>";ov.classList.add("on");const b=ov.querySelector("button");b&&b.focus()}
+function hide(){ov.classList.remove("on")}
+function rules(){
+  const first=!started;
+  show(`<h2>How to unlock</h2><ol>
+  <li>The phone has a secret 4-digit PIN.</li>
+  <li>Digits can be 0–9, including 0.</li>
+  <li>All four digits in the secret PIN are different — no repeats.</li>
+  <li>Your guess must also use four different digits. Repeating a digit will not be accepted.</li>
+  <li>You have exactly 10 attempts to unlock the phone.</li>
+  <li>After each guess, every digit gets colour feedback.</li>
+  <li><span class="chip g">Green</span> correct digit, correct position.</li>
+  <li><span class="chip y">Yellow</span> digit is in the PIN, but in the wrong position.</li>
+  <li><span class="chip d">Grey</span> digit is not in the PIN, or no unused copy of it remains.</li>
+  <li>The order of the digits matters.</li>
+  <li>Each digit can appear only once in the PIN and once in your guess.</li>
+  <li>All four green? The phone unlocks and you win.</li>
+  <li>Use all 10 attempts without cracking it and the phone stays locked. The PIN is revealed.</li></ol>
+  <p class="note">This is a casual puzzle, not secure authentication. The PIN is created in your browser each game and is never shown until the game ends.</p>
+  <button class="big" id="go">${first?"Start Game":"Back to Game"}</button>`);
+  $("#go").onclick=()=>{hide();if(first){started=true;newGame()}};
+}
+function win(r){
+  over=true;outcome="win";busy=false;draw();meta();ph.classList.remove("off");ph.classList.add("off");
+  $("#sh").setAttribute("d","M7.5 11V7.5a4.5 4.5 0 0 1 8.6-1.9");lock.classList.add("open");lock.setAttribute("aria-label","Phone unlocked");
+  ph.classList.add("glow");confetti();buzz([40,60,40,60,120]);
+  [523,659,784,1047].forEach((f,i)=>tone(f,.25,"triangle",.08,i*.12));
+  setTimeout(()=>{if(!over)return;const n=r+1;
+    show(`<h2 class="w">PHONE UNLOCKED!</h2><p>You cracked it in <b>${n}</b> ${n===1?"attempt":"attempts"} out of 10.</p><button class="big" id="again">Play Again</button>`);
+    $("#again").onclick=newGame},1100);
+}
+function lose(){
+  over=true;outcome="lose";busy=false;draw();meta();
+  ph.classList.add("off");buzz([200,80,200]);[330,262,196].forEach((f,i)=>tone(f,.3,"sawtooth",.05,i*.18));
+  setTimeout(()=>{
+    show(`<h2 class="l">PHONE LOCKED!</h2><p>The secret PIN was</p><div class="pin">${secret.map(d=>`<div class="t c">${d}</div>`).join("")}</div><p>So close! Take a breath and try again, you can crack the next one.</p><button class="big" id="again">Try Again</button>`);
+    $("#again").onclick=newGame},700);
+}
+function confetti(){
+  const cols=["#22c55e","#eab308","#38bdf8","#f472b6","#ffffff","#a78bfa"];
+  for(let i=0;i<70;i++){const p=document.createElement("i");
+    p.style.cssText=`left:${Math.random()*100}%;background:${cols[i%6]};--dx:${(Math.random()-.5)*180}px;--r:${Math.random()*720}deg;animation-duration:${1.8+Math.random()*1.6}s;animation-delay:${Math.random()*.5}s`;
+    fx.appendChild(p)}
+  setTimeout(()=>fx.innerHTML="",4400);
+}
+
+/* ---------- new game ---------- */
+function newGame(){
+  // Shuffle digits 0–9 and take four unique digits for the secret PIN.
+  const digits=["0","1","2","3","4","5","6","7","8","9"];
+  for(let i=digits.length-1;i>0;i--){
+    let j;
+    try{const a=new Uint32Array(1);crypto.getRandomValues(a);j=a[0]%(i+1)}
+    catch(e){j=Math.floor(Math.random()*(i+1))}
+    [digits[i],digits[j]]=[digits[j],digits[i]];
+  }
+  secret=digits.slice(0,LEN);
+  row=0;cur=[];over=false;busy=false;outcome=null;keys={};
+  rows.forEach(r=>{r.classList.remove("shake");[...r.children].forEach(t=>{t.className="t";t.textContent=""})});
+  Object.values(keyEls).forEach(k=>k.classList.remove("a","p","c"));
+  $("#sh").setAttribute("d","M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11");lock.classList.remove("open");lock.setAttribute("aria-label","Phone locked");
+  ph.classList.remove("off","glow");fx.innerHTML="";toast.classList.remove("on");hide();draw();meta();
+}
+
+/* ---------- controls ---------- */
+$("#snd").onclick=()=>{sound=!sound;$("#snd").textContent=sound?"🔊":"🔇";tone(600,.08)};
+$("#rl").onclick=()=>{if(!ov.classList.contains("on"))rules()};
+rules();
+})();
+</script>
+</body>
+</html>
